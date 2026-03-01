@@ -5,13 +5,14 @@ import torch.nn as nn
 
 class chr_cnn(nn.Module):
 
-  def __init__(self, n_class, text_len = 1014, alpha_len = 70):
+  def __init__(self,config):
 
     super().__init__()
 
-    self.text_len = text_len
-    self.alpha_len = alpha_len
-    self.n_class = n_class
+    self.text_len = config.text_len
+    self.alpha_len = config.alpha_len
+    self.n_class = config.num_classes
+    self. use_relu= config.use_relu
 
     self.conv1 = nn.Sequential(
         nn.Conv1d(in_channels= self.alpha_len, out_channels= 256, kernel_size= 7),
@@ -51,20 +52,34 @@ class chr_cnn(nn.Module):
 
     # fully connected layers
     fc_input_dim = (((self.text_len - 96) // 27) * 256)
+    if not self.use_relu:
+        self.fc1 = nn.Sequential(
+            nn.Linear(in_features= fc_input_dim, out_features= 1024),
+            nn.Dropout(p= 0.5),
+        )
 
-    self.fc1 = nn.Sequential(
-        nn.Linear(in_features= fc_input_dim, out_features= 1024),
-        nn.Dropout(p= 0.5),
-    )
+        self.fc2 = nn.Sequential(
+            nn.Linear(in_features= 1024, out_features= 1024),
+            nn.Dropout(p= 0.5),
+        )
+    else:
+        self.fc1 = nn.Sequential(
+            nn.Linear(in_features=fc_input_dim, out_features=1024),
+            nn.ReLU(),
+            nn.Dropout(p=0.5),
+        )
 
-    self.fc2  = nn.Sequential(
-        nn.Linear(in_features= 1024, out_features= 1024),
-        nn.Dropout(p= 0.5),
-    )
+        self.fc2 = nn.Sequential(
+            nn.Linear(in_features=1024, out_features=1024),
+            nn.ReLU(),
+            nn.Dropout(p=0.5),
+        )
 
     self.fc3  = nn.Sequential(
         nn.Linear(in_features= 1024, out_features= self.n_class),
     )
+
+
     self.init_weights()
 
   def init_weights(self):
@@ -97,4 +112,4 @@ class chr_cnn(nn.Module):
 
 def create_model(config):
     """Create model from config."""
-    return chr_cnn(config.input_dim, config.output_dim)
+    return chr_cnn(config)
