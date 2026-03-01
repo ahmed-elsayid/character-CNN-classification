@@ -44,8 +44,6 @@ def evaluate(model, dataloader, criterion, device):
     accuracy = (correct_counter / sample_counter) * 100
     error = 100 - accuracy
 
-    print(f'loss : {avg_loss:.4f}, acuuracy : {accuracy:.4f} error : {error:.4f}')
-
     return {
         'losses': all_losses,
         'accuracies': accuracies,

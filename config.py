@@ -30,6 +30,7 @@ class BaselineConfig:
     momentum: float = 0.9
     optimizer_type:str ='sgd'
     decay : bool = False
+    saving_epoch : int = 0
 
     # Misc
     seed: int = 7

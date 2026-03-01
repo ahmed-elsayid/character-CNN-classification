@@ -12,66 +12,104 @@ from loss import get_loss_fn
 from metrics import compute_metrics
 from utils import set_seed, get_device
 from evaluate import evaluate
+from tqdm import tqdm
 
-
-def train_epoch(model, dataloader, criterion, optimizer, device):
+def train_epoch (model, dataloader, criterion, optimizer, device):
     """Train for one epoch."""
     model.train()
-    total_loss = 0
-    total_acc = 0
-    
-    for data, target in dataloader:
-        data, target = data.to(device), target.to(device)
-        
-        optimizer.zero_grad()
-        output = model(data)
-        loss = criterion(output, target)
+
+    all_losses = []
+    accuracies = []
+
+    correct_counter = 0
+    sample_counter = 0
+
+    pbar = tqdm(dataloader,desc="Training")
+
+    for X,y in pbar:
+        X,y = X.to(device), y.to(device)
+
+        preds = model(X)
+        loss = criterion(preds, y)
+
         loss.backward()
         optimizer.step()
-        
-        total_loss += loss.item()
-        metrics = compute_metrics(output, target)
-        total_acc += metrics['accuracy']
-    
+        optimizer.zero_grad()
+
+        metrics = compute_metrics(preds, y)
+
+        correct_counter += metrics * y.size(0)
+        sample_counter += y.size(0)
+
+        all_losses.append(loss.item())
+        accuracies.append(metrics)
+
+    avg_loss = sum(all_losses) / len(all_losses)
+    accuracy = (correct_counter / sample_counter) * 100
+
     return {
-        'loss': total_loss / len(dataloader),
-        'accuracy': total_acc / len(dataloader)
+        'losses': all_losses,
+        'accuracies': accuracies
     }
 
 
 def train(config):
     """Main training function."""
-    # Initialize wandb
-    wandb.init(project="dl-course", name=config.name, config=vars(config))
-    
     set_seed(config.seed)
     device = get_device(config.device)
+
+    history = {'train_loss': [],
+             'train_accuracy': [],
+             'valid_loss': [],
+             'valid_accuracy': [],
+             'valid_error': []}
+    
+    best_val_error = 100
     
     # Setup
     train_loader = get_dataloader(config, 'train')
     val_loader = get_dataloader(config, 'val')
     model = create_model(config).to(device)
     criterion = get_loss_fn()
-    optimizer = optim.Adam(model.parameters(), lr=config.learning_rate)
-    
+
+    if (config.optimizer_type == 'sgd'):
+        optimizer = optim.SGD(model.parameters(), lr=config.learning_rate, momentum= config.momentum)
+        scheduler = optim.lr_scheduler.StepLR(optimizer, step_size= 3, gamma= 0.5)
+    else:
+        optimizer = optim.Adam(model.parameters(), lr=config.learning_rate)
+        scheduler = None
+
+     
+
     # Training loop
     for epoch in range(config.num_epochs):
         train_metrics = train_epoch(model, train_loader, criterion, optimizer, device)
         val_metrics = evaluate(model, val_loader, criterion, device)
-        
-        # Log to wandb
-        wandb.log({
-            'epoch': epoch,
-            'train/loss': train_metrics['loss'],
-            'train/accuracy': train_metrics['accuracy'],
-            'val/loss': val_metrics['loss'],
-            'val/accuracy': val_metrics['accuracy']
-        })
-        
-        print(f"Epoch {epoch}: Train Loss={train_metrics['loss']:.4f}, Val Acc={val_metrics['accuracy']:.4f}")
-    
-    wandb.finish()
 
+        if scheduler: 
+           scheduler.step()
+        
+        history['train_loss'].append(train_metrics['losses'])
+        history['train_accuracy'].append(train_metrics['accuracies'])
+        history['valid_loss'].append(val_metrics['losses'])
+        history['valid_accuracy'].append(val_metrics['accuracies'])
+        history['valid_error'].append(val_metrics['error'])
+
+        current_lr = optimizer.param_groups[0]['lr']
+
+        if not config.saving_epoch:
+            if val_metrics['error'] < best_val_error :
+                best_val_error = val_metrics['error']
+                torch.save({'model' : model.state_dict()}, f'model_epoch_{epoch + 1}.pth')
+        else:
+            if (epoch + 1) % config.saving_epoch == 0:
+                torch.save({'model' : model.state_dict()}, f'model_epoch_{epoch + 1}.pth')
+
+
+    print(f"best_val_error {best_val_error} __ paper error :15.65")
+    return history
+       
+    
 
 def main():
     parser = argparse.ArgumentParser()
