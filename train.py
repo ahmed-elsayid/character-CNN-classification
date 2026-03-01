@@ -3,7 +3,6 @@
 import argparse
 import torch
 import torch.optim as optim
-import wandb
 
 from config import get_config
 from model import create_model
