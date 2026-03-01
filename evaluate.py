@@ -15,55 +15,43 @@ from tqdm import tqdm
 def evaluate(model, dataloader, criterion, device):
     """Evaluate model."""
     model.eval()
-    total_loss = 0
-    total_acc = 0
-    
+
+    correct_counter = 0
+    sample_counter = 0
+
+    all_losses = []
+    accuracies = []
+
+    pbar = tqdm(dataloader ,desc= "Validation")
+
     with torch.no_grad():
-        for data, target in dataloader:
-            data, target = data.to(device), target.to(device)
-            output = model(data)
-            loss = criterion(output, target)
-            
-            total_loss += loss.item()
-            metrics = compute_metrics(output, target)
-            total_acc += metrics['accuracy']
-    
+        for X,y in pbar:
+
+            X,y = X.to(device), y.to(device)
+
+            preds = model(X)
+
+            loss = criterion(preds, y)
+            metrics = compute_metrics(preds, y)
+
+            correct_counter += metrics * y.size(0)
+            sample_counter += y.size(0)
+
+            all_losses.append(loss.item())
+            accuracies.append(metrics)
+
+    avg_loss = sum(all_losses) / len(all_losses)
+    accuracy = (correct_counter / sample_counter) * 100
+    error = 100 - accuracy
+
+    print(f'loss : {avg_loss:.4f}, acuuracy : {accuracy:.4f} error : {error:.4f}')
+
     return {
-        'loss': total_loss / len(dataloader),
-        'accuracy': total_acc / len(dataloader)
+        'losses': all_losses,
+        'accuracies': accuracies,
+        'error' : error
     }
 
-def eval_loop(model, dataloader, criterion, device):
-
-  model.eval()
-
-  correct_counter = 0
-  sample_counter = 0
-  total_loss = 0
-
-  pbar = tqdm(dataloader ,desc="Validation")
-
-  with torch.no_grad():
-    for X,y in pbar:
-
-      X,y = X.to(device), y.to(device)
-
-      preds = model(X)
-
-      loss = criterion(preds, y)
-
-
-      total_loss += loss.item()
-      correct_counter += ((y == torch.argmax(preds, dim= 1)).sum()).item()
-      sample_counter += y.size(0)
-
-  accuracy = (correct_counter / sample_counter) * 100
-  error = 100 - accuracy
-  avg_loss = (total_loss / len(dataloader))
-
-  print(f'loss : {avg_loss:.4f}, acuuracy : {accuracy:.4f} error : {error:.4f}')
-
-  return avg_loss, accuracy, error
 
 def main():
     parser = argparse.ArgumentParser()
@@ -84,9 +72,11 @@ def main():
     
     criterion = get_loss_fn()
     results = evaluate(model, test_loader, criterion, device)
-    
-    print(f"Test Loss: {results['loss']:.4f}")
-    print(f"Test Accuracy: {results['accuracy']:.4f}")
+
+    print(f"avg Test Loss: {sum(results['losses']) / len(results['loss']) : .4f} %")
+    print(f"avg Test Accuracy: {sum(results['accuracies']) / len(results['accuracies']) :.4f} %")
+    print(f"Test Error: {sum(results['error']) :.4f} % paper baseline error : 15.65 %")
+
 
 
 if __name__ == "__main__":
