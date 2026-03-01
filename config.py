@@ -9,42 +9,51 @@ class BaselineConfig:
     name: str = "baseline"
     
     # Data
-    num_samples: int = 1000
-    input_dim: int = 10
-    output_dim: int = 2
-    
+    dataset_name:str = 'ag_news'
+    num_classes:int = 4
+
+    # text encoding
+    text_len:int = 1014
+    alpha_len:int = 70
+
+    # augmentation
+    p:float = 0.5
+    q:float = 0.5
+
+    #model
+    use_relu:bool = False
+
     # Training
-    batch_size: int = 32
+    batch_size: int = 128
     num_epochs: int = 10
     learning_rate: float = 0.01
-    
+    momentum: float = 0.9
+    optimizer_type:str ='sgd'
+    decay : bool = False
+
     # Misc
-    seed: int = 42
+    seed: int = 7
     device: str = "cuda"
 
 
 @dataclass
 class Ablation1Config(BaselineConfig):
-    """TODO: First ablation experiment."""
-    name: str = "ablation1"
-    # TODO: Override parameters for ablation 1
-    learning_rate: float = 0.001
+    name: str = "ablation1_shorten_text_len"
+    text_len: int = 507
 
 
 @dataclass
 class Ablation2Config(BaselineConfig):
-    """TODO: Second ablation experiment."""
-    name: str = "ablation2"
-    # TODO: Override parameters for ablation 2
-    batch_size: int = 64
+    name: str = "ablation2_use_adam_optimizer"
+    optimizer_type:str ='adam'
+    learning_rate: float = 0.001
+    decay: bool = True
 
 
 @dataclass
 class Ablation3Config(BaselineConfig):
-    """TODO: Third ablation experiment."""
-    name: str = "ablation3"
-    # TODO: Override parameters for ablation 3
-    num_epochs: int = 20
+    name: str = "ablation3_use_Relu_in_FC"
+    use_relu: bool = True
 
 
 def get_config(config_name: str):
