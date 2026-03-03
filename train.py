@@ -13,6 +13,8 @@ from utils import set_seed, get_device
 from evaluate import evaluate
 from tqdm import tqdm
 
+DEFAULT_CONFIG = 'baseline'
+
 def train_epoch (model, dataloader, criterion, optimizer, device):
     """Train for one epoch."""
     model.train()
@@ -95,14 +97,14 @@ def train(config):
         history['valid_error'].append(val_metrics['error'])
 
         current_lr = optimizer.param_groups[0]['lr']
+        print(f"current_lr : {current_lr:.6f} | epoch: {epoch+1}/{config.num_epochs}")
 
-        if not config.saving_epoch:
-            if val_metrics['error'] < best_val_error :
-                best_val_error = val_metrics['error']
-                torch.save({'model' : model.state_dict()}, f'model_epoch_{epoch + 1}.pth')
-        else:
-            if (epoch + 1) % config.saving_epoch == 0:
-                torch.save({'model' : model.state_dict()}, f'model_epoch_{epoch + 1}.pth')
+        torch.save(model.state_dict(), f"{config.name}_last.pth")
+
+        if val_metrics['error'] < best_val_error:
+            best_val_error = val_metrics['error']
+            torch.save(model.state_dict(), f"{config.name}_best.pth")
+            print(f"New best model saved! Erorr : {val_metrics['error']:.2f}%")
 
 
     print(f"best_val_error {best_val_error} __ paper error :15.65")
@@ -112,7 +114,7 @@ def train(config):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--config', type=str, required=True, 
+    parser.add_argument('--config', type=str, default=DEFAULT_CONFIG,
                        choices=['baseline', 'ablation1', 'ablation2', 'ablation3'],
                        help='Configuration to use')
     args = parser.parse_args()

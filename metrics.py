@@ -17,6 +17,5 @@ def compute_metrics(output, target):
     
     TODO: Add your custom metrics here.
     """
-    return {
-        'accuracy': compute_accuracy(output, target)
-    }
+    compute_accuracy(output, target)
+

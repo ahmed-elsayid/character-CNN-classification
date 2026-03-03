@@ -11,11 +11,14 @@ from nltk.corpus import stopwords
 from utils import set_seed
 from config import BaselineConfig
 
-nltk.download("wordnet")
-nltk.download("stopwords")
-nltk.download("punkt")
-nltk.download("punkt_tab")
-stop_word = set(stopwords.words("english"))
+try:
+    nltk.data.find('corpora/wordnet')
+except LookupError:
+    nltk.download("wordnet")
+    nltk.download("stopwords")
+    nltk.download("punkt")
+    nltk.download("punkt_tab")
+
 
 
 class Augmentor:
@@ -124,7 +127,7 @@ def get_dataloader(config: BaselineConfig, split='train'):
     set_seed(config.seed)
 
     dataset = load_dataset(config.dataset_name)
-    splited_train = dataset['train'].train_test_split(train_size=0.8)
+    splited_train = dataset['train'].train_test_split(train_size=0.8, seed=config.seed)
     train_d = splited_train['train']
     valid_d = splited_train['test']
     test_d = dataset['test']
@@ -137,14 +140,14 @@ def get_dataloader(config: BaselineConfig, split='train'):
         train_dataset_unaug = Chr_dataset(train_d, enc, aug, False)
         train_dataset = ConcatDataset([train_dataset_aug, train_dataset_unaug])
 
-        final_dataloader = DataLoader(train_dataset, batch_size=128, shuffle=True, num_workers=2, pin_memory=True)
+        final_dataloader = DataLoader(train_dataset, batch_size=config.batch_size, shuffle=True, num_workers=2, pin_memory=True)
 
     elif split == "val":
         valid_dataset = Chr_dataset(valid_d, enc, aug, False)
-        final_dataloader = DataLoader(valid_dataset, batch_size=128, shuffle=False, num_workers=2, pin_memory=True)
+        final_dataloader = DataLoader(valid_dataset, batch_size=config.batch_size, shuffle=False, num_workers=2, pin_memory=True)
 
     else:
         test_dataset = Chr_dataset(test_d, enc, aug, False)
-        final_dataloader = DataLoader(test_dataset, batch_size=128, shuffle=False, num_workers=2, pin_memory=True)
+        final_dataloader = DataLoader(test_dataset, batch_size=config.batch_size, shuffle=False, num_workers=2, pin_memory=True)
 
     return final_dataloader

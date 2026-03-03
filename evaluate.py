@@ -11,6 +11,8 @@ from metrics import compute_metrics
 from utils import set_seed, get_device
 from tqdm import tqdm
 
+DEFAULT_CONFIG = 'baseline'
+DEFAULT_CHECKPOINT = 'baseline_best.pth'
 
 def evaluate(model, dataloader, criterion, device):
     """Evaluate model."""
@@ -53,8 +55,8 @@ def evaluate(model, dataloader, criterion, device):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--config', type=str, required=True)
-    parser.add_argument('--checkpoint', type=str, required=True)
+    parser.add_argument('--config', type=str, default=DEFAULT_CONFIG)
+    parser.add_argument('--checkpoint', type=str, default=DEFAULT_CHECKPOINT)
     args = parser.parse_args()
     
     config = get_config(args.config)
@@ -71,9 +73,9 @@ def main():
     criterion = get_loss_fn()
     results = evaluate(model, test_loader, criterion, device)
 
-    print(f"avg Test Loss: {sum(results['losses']) / len(results['loss']) : .4f} %")
+    print(f"avg Test Loss: {sum(results['losses']) / len(results['losses']) : .4f} %")
     print(f"avg Test Accuracy: {sum(results['accuracies']) / len(results['accuracies']) :.4f} %")
-    print(f"Test Error: {sum(results['error']) :.4f} % paper baseline error : 15.65 %")
+    print(f"Test Error: {results['error'] :.4f} % paper baseline error : 15.65 %")
 
 
 
