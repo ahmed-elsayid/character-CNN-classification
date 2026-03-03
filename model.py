@@ -52,24 +52,14 @@ class chr_cnn(nn.Module):
 
     # fully connected layers
     fc_input_dim = (((self.text_len - 96) // 27) * 256)
-    if not self.use_relu:
-        self.fc1 = nn.Sequential(
-            nn.Linear(in_features= fc_input_dim, out_features= 1024),
-            nn.Dropout(p= 0.5),
-        )
 
-        self.fc2 = nn.Sequential(
-            nn.Linear(in_features= 1024, out_features= 1024),
-            nn.Dropout(p= 0.5),
-        )
-    else:
-        self.fc1 = nn.Sequential(
+    self.fc1 = nn.Sequential(
             nn.Linear(in_features=fc_input_dim, out_features=1024),
             nn.ReLU(),
             nn.Dropout(p=0.5),
         )
 
-        self.fc2 = nn.Sequential(
+    self.fc2 = nn.Sequential(
             nn.Linear(in_features=1024, out_features=1024),
             nn.ReLU(),
             nn.Dropout(p=0.5),

@@ -20,8 +20,7 @@ class BaselineConfig:
     p:float = 0.5
     q:float = 0.5
 
-    #model
-    use_relu:bool = False
+
 
     # Training
     batch_size: int = 128
@@ -54,7 +53,6 @@ class Ablation2Config(BaselineConfig):
 @dataclass
 class Ablation3Config(BaselineConfig):
     name: str = "ablation3_use_Relu_in_FC"
-    use_relu: bool = True
 
 
 def get_config(config_name: str):
