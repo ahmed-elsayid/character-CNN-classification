@@ -37,7 +37,7 @@ class History:
         train_acc.to_csv(os.path.join(
             save_dir, "train_accuracy_batches.csv"), index=False)
 
-        valid_loss = self.concat_history(['valid_loss'], "valid_loss")
+        valid_loss = self.concat_history(self.history['valid_loss'], "valid_loss")
         valid_loss.to_csv(os.path.join(
             save_dir, "valid_loss_batches.csv"), index=False)
 
