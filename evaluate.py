@@ -41,10 +41,12 @@ def evaluate(model, dataloader, criterion, device):
 
             all_losses.append(loss.item())
             accuracies.append(metrics)
+            pbar.set_postfix({"loss": f"{loss.item():.4f}", "accuracy": f"{metrics * 100:.2f}%"})
 
     avg_loss = sum(all_losses) / len(all_losses)
     accuracy = (correct_counter / sample_counter) * 100
     error = 100 - accuracy
+    print(f"Test Loss: {avg_loss:.4f} | Test Accuracy: {accuracy:.2f}% | Test Error: {error:.2f}%")
 
     return {
         'losses': all_losses,

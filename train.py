@@ -44,9 +44,10 @@ def train_epoch (model, dataloader, criterion, optimizer, device):
 
         all_losses.append(loss.item())
         accuracies.append(metrics)
-
+        pbar.set_postfix({"loss": f"{loss.item():.4f}", "accuracy": f"{metrics * 100:.2f}%"})
     avg_loss = sum(all_losses) / len(all_losses)
     accuracy = (correct_counter / sample_counter) * 100
+    print(f"Train Loss: {avg_loss:.4f} | Train Accuracy: {accuracy:.2f}%")
 
     return {
         'losses': all_losses,
