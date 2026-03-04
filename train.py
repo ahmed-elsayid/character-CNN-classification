@@ -77,7 +77,7 @@ def train(config):
         optimizer = optim.SGD(model.parameters(), lr=config.learning_rate, momentum= config.momentum)
         scheduler = optim.lr_scheduler.StepLR(optimizer, step_size= 3, gamma= 0.5)
     else:
-        optimizer = optim.Adam(model.parameters(), lr=config.learning_rate)
+        optimizer = optim.Adam(model.parameters(), lr=config.learning_rate,weight_decay= config.decay)
         scheduler = None
 
      

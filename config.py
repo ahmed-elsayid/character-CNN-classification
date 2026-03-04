@@ -28,7 +28,7 @@ class BaselineConfig:
     learning_rate: float = 0.01
     momentum: float = 0.9
     optimizer_type:str ='sgd'
-    decay : bool = False
+    decay : float = 1e-5
     saving_epoch : int = 0
 
     # Misc
@@ -52,7 +52,9 @@ class Ablation2Config(BaselineConfig):
 
 @dataclass
 class Ablation3Config(BaselineConfig):
-    name: str = "ablation3_use_Relu_in_FC"
+    name: str = "ablation3_changing_the_p_and_q"
+    p: float = 0.2
+    q: float = 0.2
 
 
 def get_config(config_name: str):
