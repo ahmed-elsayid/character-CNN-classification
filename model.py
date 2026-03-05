@@ -12,7 +12,6 @@ class chr_cnn(nn.Module):
     self.text_len = config.text_len
     self.alpha_len = config.alpha_len
     self.n_class = config.num_classes
-    self.use_relu= config.use_relu
 
     self.conv1 = nn.Sequential(
         nn.Conv1d(in_channels= self.alpha_len, out_channels= 256, kernel_size= 7),
