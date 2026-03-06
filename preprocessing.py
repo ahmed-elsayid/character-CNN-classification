@@ -1,3 +1,9 @@
+import torch
+import numpy as np
+import random
+import nltk
+from nltk.corpus import wordnet
+
 
 class Augmentor:
     def __init__(self, p=0.5, q=0.5):

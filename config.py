@@ -39,7 +39,7 @@ class BaselineConfig:
 @dataclass
 class Ablation1Config(BaselineConfig):
     name: str = "ablation1_shorten_text_len"
-    text_len: int = 507
+    text_len: int = 125
 
 
 @dataclass

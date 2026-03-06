@@ -70,7 +70,7 @@ def main():
     
     # Load checkpoint
     checkpoint = torch.load(args.checkpoint)
-    model.load_state_dict(checkpoint['model_state_dict'])
+    model.load_state_dict(checkpoint)
     
     criterion = get_loss_fn()
     results = evaluate(model, test_loader, criterion, device)
